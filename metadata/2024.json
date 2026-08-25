@@ -1,0 +1,8 @@
+{
+  "year": 2024,
+  "wrapperVersion": "2024.0.1",
+  "autodeskPackageVersion": "24.3.0",
+  "targetFramework": "net48",
+  "localSdkStatus": "present",
+  "localSdkPath": "libs/ObjectARX_Cad24"
+}

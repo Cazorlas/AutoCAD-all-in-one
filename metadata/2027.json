@@ -1,0 +1,8 @@
+{
+  "year": 2027,
+  "wrapperVersion": "2027.0.1",
+  "autodeskPackageVersion": "26.0.0",
+  "targetFramework": "net10.0-windows",
+  "localSdkStatus": "present",
+  "localSdkPath": "libs/ObjectARX_Cad27"
+}

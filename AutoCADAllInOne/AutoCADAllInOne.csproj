@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AutoCadVersion Condition="'$(AutoCadVersion)' == ''">2024</AutoCadVersion>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2019' Or '$(AutoCadVersion)' == '2020' Or '$(AutoCadVersion)' == '2021' Or '$(AutoCadVersion)' == '2022' Or '$(AutoCadVersion)' == '2023'">net47</TargetFramework>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2024'">net48</TargetFramework>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2025' Or '$(AutoCadVersion)' == '2026'">net8.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2027'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
+
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2019'">23.0.0</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2020'">23.1.0</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2021'">24.0.0</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2022'">24.1.51000</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2023'">24.2.0</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2024'">24.3.0</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2025'">25.0.1</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2026'">25.1.1</_ExpectedAutoCadSdkPackageVersion>
+    <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2027'">26.0.0</_ExpectedAutoCadSdkPackageVersion>
+    <AutoCadSdkPackageVersion Condition="'$(AutoCadSdkPackageVersion)' == ''">$(_ExpectedAutoCadSdkPackageVersion)</AutoCadSdkPackageVersion>
+
+    <PackageId>AutoCAD-all-in-one</PackageId>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(AutoCadVersion).0.1</PackageVersion>
+    <Title>AutoCAD all-in-one managed API facade</Title>
+    <Description>A build-only facade that selects the official Autodesk AutoCAD.NET package for one AutoCAD host year.</Description>
+    <Authors>Cazorlas</Authors>
+    <PackageTags>autocad objectarx sdk facade msbuild</PackageTags>
+    <PackageProjectUrl>https://github.com/Cazorlas/AutoCAD-all-in-one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Cazorlas/AutoCAD-all-in-one.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoCAD.NET" Version="[$(AutoCadSdkPackageVersion)]" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies"
+                      Version="1.0.3"
+                      PrivateAssets="all"
+                      Condition="'$(AutoCadVersion)' == '2019' Or '$(AutoCadVersion)' == '2020' Or '$(AutoCadVersion)' == '2021' Or '$(AutoCadVersion)' == '2022' Or '$(AutoCadVersion)' == '2023' Or '$(AutoCadVersion)' == '2024'" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\build\years\$(AutoCadVersion)\AutoCAD-all-in-one.props"
+          Pack="true"
+          PackagePath="buildTransitive\AutoCAD-all-in-one.props" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <Target Name="ValidateAutoCadPackageSelection" BeforeTargets="Restore;Pack">
+    <Error Condition="'$(_ExpectedAutoCadSdkPackageVersion)' == ''"
+           Text="Unsupported AutoCadVersion '$(AutoCadVersion)'. Expected a year from 2019 through 2027." />
+    <Error Condition="'$(AutoCadSdkPackageVersion)' != '$(_ExpectedAutoCadSdkPackageVersion)'"
+           Text="AutoCAD $([System.String]::Copy('$(AutoCadVersion)')) requires AutoCAD.NET $(_ExpectedAutoCadSdkPackageVersion), but $(AutoCadSdkPackageVersion) was requested." />
+  </Target>
+</Project>

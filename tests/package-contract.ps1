@@ -74,10 +74,81 @@ function Test-MetadataContract {
     Write-Output "Metadata contract: PASS (9 years)"
 }
 
+function Get-SelectedYearContracts {
+    $contracts = @(Get-ExpectedYearContracts)
+    if ($Year -ne 0) {
+        return @($contracts | Where-Object { $_.Year -eq $Year })
+    }
+
+    return $contracts
+}
+
+function Test-StaticPackageContract {
+    $resolvedPackageDirectory = Join-Path $script:RepositoryRoot $PackageDirectory
+    Assert-Contract (Test-Path -LiteralPath $resolvedPackageDirectory -PathType Container) "package directory is missing: $PackageDirectory"
+
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $binaryExtensions = @(".dll", ".exe", ".arx", ".dbx", ".lib", ".msi", ".zip", ".7z")
+    $requiredEntries = @(
+        "buildTransitive/AutoCAD-all-in-one.props",
+        "README.md",
+        "LICENSE"
+    )
+
+    foreach ($expected in @(Get-SelectedYearContracts)) {
+        $packagePath = Join-Path $resolvedPackageDirectory "AutoCAD-all-in-one.$($expected.WrapperVersion).nupkg"
+        Assert-Contract (Test-Path -LiteralPath $packagePath -PathType Leaf) "missing package for $($expected.Year): $packagePath"
+
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($packagePath)
+        try {
+            $entryNames = @($archive.Entries | ForEach-Object { $_.FullName })
+            $binaryEntries = @($archive.Entries | Where-Object {
+                $binaryExtensions -contains [System.IO.Path]::GetExtension($_.FullName).ToLowerInvariant()
+            })
+            $binaryEntryNames = @($binaryEntries | ForEach-Object { $_.FullName })
+            Assert-Contract ($binaryEntries.Count -eq 0) "$($expected.Year) package contains binary entries: $($binaryEntryNames -join ', ')"
+
+            foreach ($requiredEntry in $requiredEntries) {
+                Assert-Contract ($entryNames -contains $requiredEntry) "$($expected.Year) package is missing $requiredEntry"
+            }
+
+            $nuspecEntries = @($archive.Entries | Where-Object { $_.FullName -like "*.nuspec" })
+            Assert-Contract ($nuspecEntries.Count -eq 1) "$($expected.Year) package must contain exactly one nuspec"
+
+            $reader = New-Object System.IO.StreamReader($nuspecEntries[0].Open())
+            try {
+                [xml]$nuspec = $reader.ReadToEnd()
+            }
+            finally {
+                $reader.Dispose()
+            }
+
+            $idNode = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='id']")
+            $versionNode = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='version']")
+            Assert-Contract ($null -ne $idNode -and $idNode.InnerText -eq "AutoCAD-all-in-one") "$($expected.Year) package ID mismatch"
+            Assert-Contract ($null -ne $versionNode -and $versionNode.InnerText -eq $expected.WrapperVersion) "$($expected.Year) package version mismatch"
+
+            $dependencyNodes = @($nuspec.SelectNodes("//*[local-name()='dependency'][@id='AutoCAD.NET']"))
+            Assert-Contract ($dependencyNodes.Count -eq 1) "$($expected.Year) package must have exactly one AutoCAD.NET dependency"
+            Assert-Contract ($dependencyNodes[0].version -eq "[$($expected.AutodeskPackageVersion)]") "$($expected.Year) AutoCAD.NET dependency must be exact $($expected.AutodeskPackageVersion)"
+        }
+        finally {
+            $archive.Dispose()
+        }
+
+        Write-Output "Static package contract: PASS ($($expected.Year))"
+    }
+}
+
 try {
     Test-MetadataContract
-    if (-not $MetadataOnly) {
-        throw "Package contract modes are not implemented yet."
+    if ($MetadataOnly) {
+        exit 0
+    }
+
+    Test-StaticPackageContract
+    if (-not $SkipConsumerBuild) {
+        throw "Consumer build contract is not implemented yet."
     }
 }
 catch {

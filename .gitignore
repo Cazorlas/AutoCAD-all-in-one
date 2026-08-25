@@ -1,0 +1,11 @@
+# Visual Studio and .NET build output (trimmed from github/gitignore VisualStudio.gitignore)
+.vs/
+**/[Bb]in/
+**/[Oo]bj/
+[Tt]est[Rr]esult*/
+*.user
+*.suo
+
+# Repository-generated packages and temporary consumer projects
+artifacts/
+.test-work/

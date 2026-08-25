@@ -17,10 +17,12 @@ This is an independent convenience package and is not endorsed by Autodesk.
 | 2023 | `2023.0.1` | `24.2.0` | .NET Framework 4.7 |
 | 2024 | `2024.0.1` | `24.3.0` | .NET Framework 4.8 |
 | 2025 | `2025.0.1` | `25.0.1` | .NET 8 for Windows |
-| 2026 | `2026.0.1` | `25.1.1` | .NET 8 for Windows |
+| 2026 | `2026.0.1` | `25.1.1` | .NET 10 for Windows |
 | 2027 | `2027.0.1` | `26.0.0` | .NET 10 for Windows |
 
 AutoCAD 2024 is the first intended end-to-end Paper consumer and live-host validation target. Other lines have separate build and runtime evidence; a successful restore or compile is not proof of live AutoCAD compatibility.
+
+The 2026 wrapper follows Autodesk's `AutoCAD.NET 25.1.1` package and therefore requires AutoCAD 2026 Update 1.2 or later with .NET 10. AutoCAD 2026 through Update 1.1 used .NET 8 and belongs to the earlier `25.1.0` SDK contract, which this wrapper line does not select.
 
 ## Use from an add-in project
 

@@ -34,7 +34,7 @@ function Get-ExpectedYearContracts {
         [pscustomobject]@{ Year = 2023; WrapperVersion = "2023.0.1"; AutodeskPackageVersion = "24.2.0"; TargetFramework = "net47"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad23" }
         [pscustomobject]@{ Year = 2024; WrapperVersion = "2024.0.1"; AutodeskPackageVersion = "24.3.0"; TargetFramework = "net48"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad24" }
         [pscustomobject]@{ Year = 2025; WrapperVersion = "2025.0.1"; AutodeskPackageVersion = "25.0.1"; TargetFramework = "net8.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad25" }
-        [pscustomobject]@{ Year = 2026; WrapperVersion = "2026.0.1"; AutodeskPackageVersion = "25.1.1"; TargetFramework = "net8.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad26" }
+        [pscustomobject]@{ Year = 2026; WrapperVersion = "2026.0.1"; AutodeskPackageVersion = "25.1.1"; TargetFramework = "net10.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad26" }
         [pscustomobject]@{ Year = 2027; WrapperVersion = "2027.0.1"; AutodeskPackageVersion = "26.0.0"; TargetFramework = "net10.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad27" }
     )
 }

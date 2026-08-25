@@ -13,7 +13,7 @@
 - Public package ID is exactly `AutoCAD-all-in-one`.
 - Wrapper lines are `2019.0.1` through `2027.0.1`, with exact Autodesk mappings from the approved design spec.
 - Produced packages contain no DLL, EXE, native binary, ObjectARX archive, or copied Autodesk XML documentation.
-- AutoCAD 2019–2024 consumers use .NET Framework; 2025–2026 use .NET 8 Windows; 2027 uses .NET 10 Windows.
+- AutoCAD 2019–2024 consumers use .NET Framework; 2025 uses .NET 8 Windows; 2026 Update 1.2+ and 2027 use .NET 10 Windows.
 - Existing `libs/ObjectARX_Cad*` content remains untouched and is never packed.
 - Publishing, tagging, pushing, and `Paper.AutoCad` migration are outside this implementation plan.
 - Every build claim must come from a fresh command; runtime AutoCAD compatibility remains unclaimed until live-host testing.
@@ -67,7 +67,7 @@ Expected: non-zero because metadata and props do not yet exist.
 2023|2023.0.1|24.2.0|net47|present|libs/ObjectARX_Cad23
 2024|2024.0.1|24.3.0|net48|present|libs/ObjectARX_Cad24
 2025|2025.0.1|25.0.1|net8.0-windows|present|libs/ObjectARX_Cad25
-2026|2026.0.1|25.1.1|net8.0-windows|present|libs/ObjectARX_Cad26
+2026|2026.0.1|25.1.1|net10.0-windows|present|libs/ObjectARX_Cad26
 2027|2027.0.1|26.0.0|net10.0-windows|present|libs/ObjectARX_Cad27
 ```
 

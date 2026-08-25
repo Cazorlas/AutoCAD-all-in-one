@@ -3,8 +3,8 @@
     <AutoCadVersion Condition="'$(AutoCadVersion)' == ''">2024</AutoCadVersion>
     <TargetFramework Condition="'$(AutoCadVersion)' == '2019' Or '$(AutoCadVersion)' == '2020' Or '$(AutoCadVersion)' == '2021' Or '$(AutoCadVersion)' == '2022' Or '$(AutoCadVersion)' == '2023'">net47</TargetFramework>
     <TargetFramework Condition="'$(AutoCadVersion)' == '2024'">net48</TargetFramework>
-    <TargetFramework Condition="'$(AutoCadVersion)' == '2025' Or '$(AutoCadVersion)' == '2026'">net8.0-windows</TargetFramework>
-    <TargetFramework Condition="'$(AutoCadVersion)' == '2027'">net10.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2025'">net8.0-windows</TargetFramework>
+    <TargetFramework Condition="'$(AutoCadVersion)' == '2026' Or '$(AutoCadVersion)' == '2027'">net10.0-windows</TargetFramework>
     <TargetFramework Condition="'$(TargetFramework)' == ''">net8.0</TargetFramework>
 
     <_ExpectedAutoCadSdkPackageVersion Condition="'$(AutoCadVersion)' == '2019'">23.0.0</_ExpectedAutoCadSdkPackageVersion>

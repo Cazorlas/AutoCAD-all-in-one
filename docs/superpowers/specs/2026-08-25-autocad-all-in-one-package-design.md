@@ -68,7 +68,7 @@ The wrapper version encodes the AutoCAD host year as the SemVer major number. Th
 | 2023 | `2023.0.1` | `AutoCAD.NET` `24.2.0` | .NET Framework |
 | 2024 | `2024.0.1` | `AutoCAD.NET` `24.3.0` | .NET Framework 4.8 consumer |
 | 2025 | `2025.0.1` | `AutoCAD.NET` `25.0.1` | .NET 8 Windows consumer |
-| 2026 | `2026.0.1` | `AutoCAD.NET` `25.1.1` | .NET 8 Windows consumer |
+| 2026 | `2026.0.1` | `AutoCAD.NET` `25.1.1` | .NET 10 Windows consumer; AutoCAD 2026 Update 1.2+ |
 | 2027 | `2027.0.1` | `AutoCAD.NET` `26.0.0` | .NET 10 Windows consumer |
 
 Rules:
@@ -77,6 +77,7 @@ Rules:
 - Changing a wrapper line to a different Autodesk dependency is allowed only when that dependency still targets the same AutoCAD host year and the change is recorded for consumers.
 - A package version must never silently select a different AutoCAD year.
 - The AutoCAD 2024 line is the first end-to-end consumer and host-validation target.
+- The AutoCAD 2026 line intentionally follows Autodesk's `25.1.1` package and its .NET 10 contract for AutoCAD 2026 Update 1.2 or later. AutoCAD 2026 through Update 1.1 used the earlier .NET 8/`25.1.0` contract and is not selected by this wrapper version.
 
 ## 5. Repository Layout
 

@@ -332,6 +332,8 @@ try {
     if (-not $SkipConsumerBuild) {
         Test-ConsumerBuildContract
     }
+
+    exit 0
 }
 catch {
     Write-Error $_

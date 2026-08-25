@@ -110,10 +110,8 @@ For each year, open the nupkg with `System.IO.Compression.ZipFile`, assert zero 
 
 ```text
 buildTransitive/AutoCAD-all-in-one.props
-buildTransitive/AutoCAD-all-in-one.targets
 README.md
 LICENSE
-THIRD-PARTY-NOTICES.md
 ```
 
 - [ ] **Step 2: Verify packing fails**
@@ -164,7 +162,7 @@ git commit -m "feat: pack year-specific AutoCAD facade"
 
 - [ ] **Step 1: Add failing consumer tests**
 
-Generate a temporary consumer using Autodesk's `CommandMethodAttribute`, require the selected `AUTOCAD<year>` constant, build it, and reject any output named `AcCoreMgd.dll`, `AcDbMgd.dll`, `AcMgd.dll`, `AcCui.dll`, `AcWindows.dll`, `AdWindows.dll`, or `acdbmgdbrep.dll`. Build once more with another `AutoCadVersion` and require:
+First require `buildTransitive/AutoCAD-all-in-one.targets` in the static package contract. Then generate a temporary consumer using Autodesk's `CommandMethodAttribute`, require the selected `AUTOCAD<year>` constant, build it, and reject any output named `AcCoreMgd.dll`, `AcDbMgd.dll`, `AcMgd.dll`, `AcCui.dll`, `AcWindows.dll`, `AdWindows.dll`, or `acdbmgdbrep.dll`. Build once more with another `AutoCadVersion` and require:
 
 ```text
 AutoCAD-all-in-one year mismatch: package targets <package>, project requests <project>.
@@ -212,7 +210,7 @@ git commit -m "feat: enforce AutoCAD consumer build contract"
 
 - [ ] **Step 1: Add failing documentation assertions**
 
-Require the facade/no-binary rule, full year table, `AutoCadVersion`, `PrivateAssets="all"`, build-versus-live validation distinction, Autodesk attribution, and official dependency name.
+Require `THIRD-PARTY-NOTICES.md` in the package, plus the facade/no-binary rule, full year table, `AutoCadVersion`, `PrivateAssets="all"`, build-versus-live validation distinction, Autodesk attribution, and official dependency name.
 
 - [ ] **Step 2: Verify failure against current README**
 

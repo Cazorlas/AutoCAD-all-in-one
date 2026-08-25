@@ -17,13 +17,9 @@
           BeforeTargets="_CopyFilesMarkedCopyLocal">
     <ItemGroup>
       <_AutoCadHostAssembly Include="@(ReferenceCopyLocalPaths)"
-                            Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'AcCoreMgd'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'AcDbMgd'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'AcMgd'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'AcCui'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'AcWindows'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'AdWindows'
-                                       Or '%(ReferenceCopyLocalPaths.Filename)' == 'acdbmgdbrep'" />
+                            Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'AutoCAD.NET'
+                                       Or '%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'AutoCAD.NET.Core'
+                                       Or '%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'AutoCAD.NET.Model'" />
       <ReferenceCopyLocalPaths Remove="@(_AutoCadHostAssembly)" />
     </ItemGroup>
   </Target>

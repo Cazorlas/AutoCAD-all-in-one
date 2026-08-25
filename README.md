@@ -44,7 +44,7 @@ The package imports build-transitive files that:
 
 - Validate `AutoCadVersion` against the package year.
 - Define `AUTOCAD2019` through `AUTOCAD2027` for the selected line.
-- Prevent `AcCoreMgd.dll`, `AcDbMgd.dll`, `AcMgd.dll`, `AcCui.dll`, `AcWindows.dll`, `AdWindows.dll`, and `acdbmgdbrep.dll` from being copied into add-in output.
+- Prevent every assembly restored from `AutoCAD.NET`, `AutoCAD.NET.Core`, and `AutoCAD.NET.Model` from being copied into add-in output. This includes core files such as `AcCoreMgd.dll`, `AcDbMgd.dll`, and `AcMgd.dll` as well as year-specific auxiliary assemblies.
 
 It does not launch AutoCAD, deploy a bundle, or change `SECURELOAD` and trusted-path settings.
 

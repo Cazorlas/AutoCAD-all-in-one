@@ -219,15 +219,6 @@ function Invoke-DotNet {
 
 function Test-ConsumerBuildContract {
     $resolvedPackageDirectory = [System.IO.Path]::GetFullPath((Join-Path $script:RepositoryRoot $PackageDirectory))
-    $hostAssemblyNames = @(
-        "AcCoreMgd.dll",
-        "AcDbMgd.dll",
-        "AcMgd.dll",
-        "AcCui.dll",
-        "AcWindows.dll",
-        "AdWindows.dll",
-        "acdbmgdbrep.dll"
-    )
 
     foreach ($expected in @(Get-SelectedYearContracts)) {
         $workDirectory = Join-Path $script:RepositoryRoot ".test-work/$($expected.Year)"
@@ -273,6 +264,16 @@ internal static class CompileProbe
             "build", $projectPath, "--configuration", "Release", "--nologo"
         )
         Assert-Contract ($build.ExitCode -eq 0) "$($expected.Year) consumer build failed:`n$($build.Output)"
+
+        $restoredPackageDirectory = Join-Path $workDirectory "packages"
+        $autodeskPackageDirectories = @(Get-ChildItem -LiteralPath $restoredPackageDirectory -Directory | Where-Object {
+            $_.Name -eq "autocad.net" -or $_.Name -eq "autocad.net.core" -or $_.Name -eq "autocad.net.model"
+        })
+        $autodeskAssemblyFiles = @($autodeskPackageDirectories | ForEach-Object {
+            Get-ChildItem -LiteralPath $_.FullName -Filter "*.dll" -File -Recurse
+        })
+        $hostAssemblyNames = @($autodeskAssemblyFiles | Select-Object -ExpandProperty Name -Unique)
+        Assert-Contract ($hostAssemblyNames.Count -gt 0) "$($expected.Year) test could not discover Autodesk host assemblies from restored packages"
 
         $outputDirectory = Join-Path $workDirectory "bin/Release/$($expected.TargetFramework)"
         $copiedHostAssemblies = @(Get-ChildItem -LiteralPath $outputDirectory -File -Recurse | Where-Object {

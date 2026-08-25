@@ -83,6 +83,21 @@ function Get-SelectedYearContracts {
     return $contracts
 }
 
+function Read-ZipEntryText {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.IO.Compression.ZipArchiveEntry]$Entry
+    )
+
+    $reader = New-Object System.IO.StreamReader($Entry.Open())
+    try {
+        return $reader.ReadToEnd()
+    }
+    finally {
+        $reader.Dispose()
+    }
+}
+
 function Test-StaticPackageContract {
     $resolvedPackageDirectory = Join-Path $script:RepositoryRoot $PackageDirectory
     Assert-Contract (Test-Path -LiteralPath $resolvedPackageDirectory -PathType Container) "package directory is missing: $PackageDirectory"
@@ -93,7 +108,8 @@ function Test-StaticPackageContract {
         "buildTransitive/AutoCAD-all-in-one.props",
         "buildTransitive/AutoCAD-all-in-one.targets",
         "README.md",
-        "LICENSE"
+        "LICENSE",
+        "THIRD-PARTY-NOTICES.md"
     )
 
     foreach ($expected in @(Get-SelectedYearContracts)) {
@@ -132,6 +148,22 @@ function Test-StaticPackageContract {
             $dependencyNodes = @($nuspec.SelectNodes("//*[local-name()='dependency'][@id='AutoCAD.NET']"))
             Assert-Contract ($dependencyNodes.Count -eq 1) "$($expected.Year) package must have exactly one AutoCAD.NET dependency"
             Assert-Contract ($dependencyNodes[0].version -eq "[$($expected.AutodeskPackageVersion)]") "$($expected.Year) AutoCAD.NET dependency must be exact $($expected.AutodeskPackageVersion)"
+
+            $readmeEntry = $archive.GetEntry("README.md")
+            $readmeText = Read-ZipEntryText -Entry $readmeEntry
+            foreach ($requiredText in @("facade", "does not include Autodesk DLLs", "AutoCadVersion", 'PrivateAssets="all"', "live AutoCAD")) {
+                Assert-Contract ($readmeText.IndexOf($requiredText, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) "README is missing required text: $requiredText"
+            }
+            foreach ($yearContract in @(Get-ExpectedYearContracts)) {
+                Assert-Contract ($readmeText.Contains([string]$yearContract.Year)) "README is missing AutoCAD $($yearContract.Year)"
+                Assert-Contract ($readmeText.Contains($yearContract.AutodeskPackageVersion)) "README is missing AutoCAD.NET $($yearContract.AutodeskPackageVersion)"
+            }
+
+            $noticeEntry = $archive.GetEntry("THIRD-PARTY-NOTICES.md")
+            $noticeText = Read-ZipEntryText -Entry $noticeEntry
+            foreach ($requiredText in @("Autodesk", "AutoCAD.NET", "not included", "not endorsed")) {
+                Assert-Contract ($noticeText.IndexOf($requiredText, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) "third-party notice is missing required text: $requiredText"
+            }
         }
         finally {
             $archive.Dispose()
@@ -139,6 +171,29 @@ function Test-StaticPackageContract {
 
         Write-Output "Static package contract: PASS ($($expected.Year))"
     }
+}
+
+function Test-AutomationContract {
+    $buildWorkflowPath = Join-Path $script:RepositoryRoot ".github/workflows/build.yml"
+    $publishWorkflowPath = Join-Path $script:RepositoryRoot ".github/workflows/publish.yml"
+    Assert-Contract (Test-Path -LiteralPath $buildWorkflowPath -PathType Leaf) "build workflow is missing"
+    Assert-Contract (Test-Path -LiteralPath $publishWorkflowPath -PathType Leaf) "publish workflow is missing"
+
+    $buildWorkflow = Get-Content -LiteralPath $buildWorkflowPath -Raw
+    foreach ($requiredText in @("pull_request:", "push:", "matrix:", "actions/upload-artifact@v4", "build/Pack.ps1", "tests/package-contract.ps1")) {
+        Assert-Contract ($buildWorkflow.Contains($requiredText)) "build workflow is missing: $requiredText"
+    }
+    foreach ($expectedYear in 2019..2027) {
+        Assert-Contract ($buildWorkflow.Contains([string]$expectedYear)) "build workflow matrix is missing $expectedYear"
+    }
+
+    $publishWorkflow = Get-Content -LiteralPath $publishWorkflowPath -Raw
+    foreach ($requiredText in @("tags:", "id-token: write", "NuGet/login@v1", "NUGET_API_KEY", "dotnet nuget push", "metadata/", "tests/package-contract.ps1")) {
+        Assert-Contract ($publishWorkflow.Contains($requiredText)) "publish workflow is missing: $requiredText"
+    }
+    Assert-Contract (-not $publishWorkflow.Contains("NUGET_API_KEY:")) "publish workflow must not declare a long-lived NUGET_API_KEY secret"
+
+    Write-Output "Automation contract: PASS"
 }
 
 function Invoke-DotNet {
@@ -245,6 +300,7 @@ try {
     }
 
     Test-StaticPackageContract
+    Test-AutomationContract
     if (-not $SkipConsumerBuild) {
         Test-ConsumerBuildContract
     }

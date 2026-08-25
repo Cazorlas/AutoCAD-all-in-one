@@ -1,0 +1,42 @@
+name: Build packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  package:
+    name: AutoCAD ${{ matrix.year }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install .NET SDKs
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Pack facade
+        shell: powershell
+        run: ./build/Pack.ps1 -Year ${{ matrix.year }} -OutputDirectory ./artifacts/packages
+
+      - name: Verify package and consumer
+        shell: powershell
+        run: ./tests/package-contract.ps1 -Year ${{ matrix.year }} -PackageDirectory ./artifacts/packages
+
+      - name: Upload unpublished package
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoCAD-all-in-one-${{ matrix.year }}
+          path: artifacts/packages/*.nupkg
+          if-no-files-found: error

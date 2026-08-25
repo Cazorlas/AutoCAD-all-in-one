@@ -54,6 +54,7 @@
           PackagePath="buildTransitive\AutoCAD-all-in-one.targets" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <Target Name="ValidateAutoCadPackageSelection" BeforeTargets="Restore;Pack">

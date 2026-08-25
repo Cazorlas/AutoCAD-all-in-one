@@ -23,32 +23,45 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: Validate release tag
+      - name: Read and validate release
         id: release
         shell: powershell
         run: |
+          $projectPath = "AutoCADAllInOne/AutoCADAllInOne.csproj"
           $tag = "${{ github.ref_name }}"
+
           if ($tag -notmatch '^v(?<year>2019|202[0-7])\.0\.(?<patch>[1-9][0-9]*)$') {
             throw "Tag '$tag' must match vYYYY.0.PATCH for AutoCAD 2019-2027."
           }
+          $tagYear = $Matches.year
 
-          $year = [int]$Matches.year
-          $version = $tag.Substring(1)
-          $metadataPath = "metadata/$year.json"
-          $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json
-          if ($metadata.wrapperVersion -ne $version) {
-            throw "Tag version '$version' does not match $metadataPath wrapperVersion '$($metadata.wrapperVersion)'."
+          $year = (& dotnet msbuild $projectPath -nologo -getProperty:AutoCadVersion).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not evaluate AutoCadVersion from $projectPath."
+          }
+
+          $version = (& dotnet msbuild $projectPath -nologo -getProperty:PackageVersion).Trim()
+          if ($LASTEXITCODE -ne 0) {
+            throw "Could not evaluate PackageVersion from $projectPath."
+          }
+
+          if ($year -ne $tagYear) {
+            throw "Tag year '$tagYear' does not match AutoCadVersion '$year'."
+          }
+          if ($tag -ne "v$version") {
+            throw "Tag '$tag' does not match PackageVersion '$version'."
           }
 
           "year=$year" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
-      - name: Pack selected facade
+      - name: Build selected facade
         shell: powershell
-        run: ./build/Pack.ps1 -Year ${{ steps.release.outputs.year }} -OutputDirectory ./artifacts/packages
+        run: dotnet build ./AutoCAD-all-in-one.sln --configuration Release --nologo
 
       - name: Verify selected package and consumer
         shell: powershell
-        run: ./tests/package-contract.ps1 -Year ${{ steps.release.outputs.year }} -PackageDirectory ./artifacts/packages
+        run: ./tests/package-contract.ps1 -Year ${{ steps.release.outputs.year }} -ExpectedPackageVersion ${{ steps.release.outputs.version }} -PackageDirectory ./artifacts/packages
 
       - name: NuGet login with OIDC
         uses: NuGet/login@v1

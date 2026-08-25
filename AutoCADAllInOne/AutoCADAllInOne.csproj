@@ -20,7 +20,7 @@
     <AutoCadSdkPackageVersion Condition="'$(AutoCadSdkPackageVersion)' == ''">$(_ExpectedAutoCadSdkPackageVersion)</AutoCadSdkPackageVersion>
 
     <PackageId>AutoCAD-all-in-one</PackageId>
-    <PackageVersion Condition="'$(PackageVersion)' == ''">$(AutoCadVersion).0.1</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">2024.0.1</PackageVersion>
     <Title>AutoCAD all-in-one managed API facade</Title>
     <Description>A build-only facade that selects the official Autodesk AutoCAD.NET package for one AutoCAD host year.</Description>
     <Authors>Cazorlas</Authors>

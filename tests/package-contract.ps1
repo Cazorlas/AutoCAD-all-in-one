@@ -4,6 +4,8 @@ param(
     [ValidateRange(2019, 2027)]
     [int]$Year,
     [string]$PackageDirectory = ".\artifacts\packages",
+    [ValidatePattern('^(2019|202[0-7])\.0\.[1-9][0-9]*$')]
+    [string]$ExpectedPackageVersion,
     [switch]$SkipConsumerBuild
 )
 
@@ -76,11 +78,22 @@ function Test-MetadataContract {
 
 function Get-SelectedYearContracts {
     $contracts = @(Get-ExpectedYearContracts)
-    if ($Year -ne 0) {
-        return @($contracts | Where-Object { $_.Year -eq $Year })
+    $selectedContracts = @(
+        if ($Year -ne 0) {
+            $contracts | Where-Object { $_.Year -eq $Year }
+        }
+        else {
+            $contracts
+        }
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedPackageVersion)) {
+        Assert-Contract ($Year -ne 0) "ExpectedPackageVersion requires one selected Year"
+        Assert-Contract ($ExpectedPackageVersion.StartsWith("$Year.", [System.StringComparison]::Ordinal)) "expected package version '$ExpectedPackageVersion' does not belong to AutoCAD $Year"
+        $selectedContracts[0].WrapperVersion = $ExpectedPackageVersion
     }
 
-    return $contracts
+    return $selectedContracts
 }
 
 function Read-ZipEntryText {
@@ -188,9 +201,23 @@ function Test-AutomationContract {
     }
 
     $publishWorkflow = Get-Content -LiteralPath $publishWorkflowPath -Raw
-    foreach ($requiredText in @("tags:", "id-token: write", "NuGet/login@v1", "NUGET_API_KEY", "dotnet nuget push", "metadata/", "tests/package-contract.ps1")) {
+    foreach ($requiredText in @(
+        "tags:",
+        "id-token: write",
+        "NuGet/login@v1",
+        "NUGET_API_KEY",
+        "dotnet nuget push",
+        "AutoCADAllInOne/AutoCADAllInOne.csproj",
+        "-getProperty:AutoCadVersion",
+        "-getProperty:PackageVersion",
+        "dotnet build",
+        "ExpectedPackageVersion",
+        "tests/package-contract.ps1"
+    )) {
         Assert-Contract ($publishWorkflow.Contains($requiredText)) "publish workflow is missing: $requiredText"
     }
+    Assert-Contract (-not $publishWorkflow.Contains("metadata/")) "publish workflow must not take the public release version from metadata"
+    Assert-Contract (-not $publishWorkflow.Contains("--skip-duplicate")) "publish workflow must surface duplicate package versions"
     Assert-Contract (-not $publishWorkflow.Contains("NUGET_API_KEY:")) "publish workflow must not declare a long-lived NUGET_API_KEY secret"
 
     Write-Output "Automation contract: PASS"

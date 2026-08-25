@@ -83,6 +83,30 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\package-contract.ps1
 
 Generated packages stay under `artifacts/packages` and are not committed. Packing and testing never publish. Public publishing is tag-driven and requires a separately configured NuGet.org trusted-publishing policy for this repository and `publish.yml`.
 
+## Publish to NuGet.org
+
+Local builds never publish. Public releases are triggered only by a matching Git tag and use NuGet.org Trusted Publishing with GitHub OIDC.
+
+One-time setup:
+
+1. In NuGet.org, open the account's Trusted Publishing page and add a GitHub policy.
+2. Set repository owner to `Cazorlas`, repository to `AutoCAD-all-in-one`, workflow file to `publish.yml`, and leave environment empty.
+3. In GitHub repository Actions variables, set `NUGET_USER` to the NuGet.org profile username, not an email address.
+
+For each release:
+
+1. Edit `AutoCadVersion` and `PackageVersion` in `AutoCADAllInOne/AutoCADAllInOne.csproj`.
+2. Build `Release` and run the focused package contract.
+3. Commit and push the release change, then wait for the main build workflow to pass.
+4. Create and push the exact matching tag:
+
+```powershell
+git tag v2024.0.1
+git push origin v2024.0.1
+```
+
+The tag workflow builds and tests exactly one package before requesting a short-lived NuGet credential. Duplicate versions fail visibly and are not skipped.
+
 ## Runtime responsibility
 
 Consumers must target the correct framework, create a valid AutoCAD bundle, execute Autodesk API calls in the valid host context, and test the add-in inside the actual AutoCAD year. Package contract tests intentionally distinguish compile-time evidence from live AutoCAD validation.

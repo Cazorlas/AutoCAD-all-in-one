@@ -49,6 +49,9 @@
     <None Include="..\build\years\$(AutoCadVersion)\AutoCAD-all-in-one.props"
           Pack="true"
           PackagePath="buildTransitive\AutoCAD-all-in-one.props" />
+    <None Include="..\build\AutoCAD-all-in-one.targets"
+          Pack="true"
+          PackagePath="buildTransitive\AutoCAD-all-in-one.targets" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
   </ItemGroup>

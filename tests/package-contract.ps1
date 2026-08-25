@@ -91,6 +91,7 @@ function Test-StaticPackageContract {
     $binaryExtensions = @(".dll", ".exe", ".arx", ".dbx", ".lib", ".msi", ".zip", ".7z")
     $requiredEntries = @(
         "buildTransitive/AutoCAD-all-in-one.props",
+        "buildTransitive/AutoCAD-all-in-one.targets",
         "README.md",
         "LICENSE"
     )
@@ -140,6 +141,103 @@ function Test-StaticPackageContract {
     }
 }
 
+function Invoke-DotNet {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments,
+        [Parameter(Mandatory = $true)]
+        [string]$WorkingDirectory
+    )
+
+    Push-Location $WorkingDirectory
+    try {
+        $output = & dotnet @Arguments 2>&1 | Out-String
+        return [pscustomobject]@{
+            ExitCode = $LASTEXITCODE
+            Output = $output
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Test-ConsumerBuildContract {
+    $resolvedPackageDirectory = [System.IO.Path]::GetFullPath((Join-Path $script:RepositoryRoot $PackageDirectory))
+    $hostAssemblyNames = @(
+        "AcCoreMgd.dll",
+        "AcDbMgd.dll",
+        "AcMgd.dll",
+        "AcCui.dll",
+        "AcWindows.dll",
+        "AdWindows.dll",
+        "acdbmgdbrep.dll"
+    )
+
+    foreach ($expected in @(Get-SelectedYearContracts)) {
+        $workDirectory = Join-Path $script:RepositoryRoot ".test-work/$($expected.Year)"
+        if (Test-Path -LiteralPath $workDirectory) {
+            $resolvedWorkDirectory = [System.IO.Path]::GetFullPath($workDirectory)
+            $resolvedTestRoot = [System.IO.Path]::GetFullPath((Join-Path $script:RepositoryRoot ".test-work"))
+            Assert-Contract ($resolvedWorkDirectory.StartsWith($resolvedTestRoot, [System.StringComparison]::OrdinalIgnoreCase)) "refusing to clean an unexpected test path"
+            Remove-Item -LiteralPath $resolvedWorkDirectory -Recurse -Force
+        }
+        [System.IO.Directory]::CreateDirectory($workDirectory) | Out-Null
+
+        $projectPath = Join-Path $workDirectory "ConsumerProbe.csproj"
+        $sourcePath = Join-Path $workDirectory "CompileProbe.cs"
+        $escapedPackageSource = [System.Security.SecurityElement]::Escape($resolvedPackageDirectory)
+        $projectContent = @"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>$($expected.TargetFramework)</TargetFramework>
+    <AutoCadVersion>$($expected.Year)</AutoCadVersion>
+    <RestoreSources>$escapedPackageSource;https://api.nuget.org/v3/index.json</RestoreSources>
+    <RestorePackagesPath>$(Join-Path $workDirectory 'packages')</RestorePackagesPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoCAD-all-in-one" Version="[$($expected.WrapperVersion)]" PrivateAssets="all" />
+  </ItemGroup>
+</Project>
+"@
+        $sourceContent = @"
+using Autodesk.AutoCAD.Runtime;
+
+internal static class CompileProbe
+{
+#if !AUTOCAD$($expected.Year)
+#error Expected AutoCAD year constant was not defined.
+#endif
+    internal static readonly System.Type CommandAttributeType = typeof(CommandMethodAttribute);
+}
+"@
+        [System.IO.File]::WriteAllText($projectPath, $projectContent, [System.Text.UTF8Encoding]::new($false))
+        [System.IO.File]::WriteAllText($sourcePath, $sourceContent, [System.Text.UTF8Encoding]::new($false))
+
+        $build = Invoke-DotNet -WorkingDirectory $workDirectory -Arguments @(
+            "build", $projectPath, "--configuration", "Release", "--nologo"
+        )
+        Assert-Contract ($build.ExitCode -eq 0) "$($expected.Year) consumer build failed:`n$($build.Output)"
+
+        $outputDirectory = Join-Path $workDirectory "bin/Release/$($expected.TargetFramework)"
+        $copiedHostAssemblies = @(Get-ChildItem -LiteralPath $outputDirectory -File -Recurse | Where-Object {
+            $hostAssemblyNames -contains $_.Name
+        })
+        $copiedHostAssemblyPaths = @($copiedHostAssemblies | ForEach-Object { $_.FullName })
+        Assert-Contract ($copiedHostAssemblies.Count -eq 0) "$($expected.Year) consumer output contains AutoCAD host DLLs: $($copiedHostAssemblyPaths -join ', ')"
+
+        $mismatchYear = if ($expected.Year -eq 2024) { 2023 } else { 2024 }
+        $mismatch = Invoke-DotNet -WorkingDirectory $workDirectory -Arguments @(
+            "build", $projectPath, "--configuration", "Release", "--nologo", "-p:AutoCadVersion=$mismatchYear"
+        )
+        $expectedDiagnostic = "AutoCAD-all-in-one year mismatch: package targets $($expected.Year), project requests $mismatchYear."
+        Assert-Contract ($mismatch.ExitCode -ne 0) "$($expected.Year) mismatched consumer build unexpectedly succeeded"
+        Assert-Contract ($mismatch.Output.Contains($expectedDiagnostic)) "$($expected.Year) mismatch diagnostic was not found:`n$($mismatch.Output)"
+
+        Write-Output "Consumer build contract: PASS ($($expected.Year))"
+    }
+}
+
 try {
     Test-MetadataContract
     if ($MetadataOnly) {
@@ -148,7 +246,7 @@ try {
 
     Test-StaticPackageContract
     if (-not $SkipConsumerBuild) {
-        throw "Consumer build contract is not implemented yet."
+        Test-ConsumerBuildContract
     }
 }
 catch {

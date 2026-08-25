@@ -59,6 +59,14 @@ Missing local archives do not block the facade package because compilation refer
 
 ## Build and verify locally
 
+The solution keeps the same simple Visual Studio workflow as `Revit_packages_all_versions`:
+
+1. Edit `AutoCadVersion` and, when needed, `PackageVersion` in `AutoCADAllInOne/AutoCADAllInOne.csproj`.
+2. Use `Debug` to restore and build without creating a package.
+3. Use `Release` to build and automatically create the selected `.nupkg` under `artifacts/packages`.
+
+The project maps the selected AutoCAD year to its target framework and official `AutoCAD.NET` dependency. No year-specific Visual Studio configurations are required.
+
 Windows PowerShell 5.1 and PowerShell 7 are both supported:
 
 ```powershell

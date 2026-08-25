@@ -85,6 +85,7 @@ The implementation plan will create this focused structure:
 
 ```text
 AutoCAD-all-in-one/
+├── AutoCAD-all-in-one.sln
 ├── .github/
 │   └── workflows/
 │       ├── build.yml
@@ -107,6 +108,14 @@ AutoCAD-all-in-one/
 ```
 
 The existing `libs/ObjectARX_Cad*` directories remain untouched as a local SDK/reference archive. They are never packed into the public NuGet artifact.
+
+### 5.1 Visual Studio entry point
+
+`AutoCAD-all-in-one.sln` lives at the repository root and contains only `AutoCADAllInOne/AutoCADAllInOne.csproj`.
+
+The solution intentionally excludes projects found below `libs/ObjectARX_Cad*`. Those are Autodesk SDK samples and reference material, not projects owned or built by this package repository. Keeping them out makes solution restore/build deterministic and keeps Visual Studio responsive.
+
+The repository uses the traditional `.sln` format requested by the maintainer, not `.slnx`. A default Release solution build selects the package project's AutoCAD 2024 defaults; producing all nine NuGet lines continues to use `build/Pack.ps1 -All`.
 
 ## 6. Package Contents
 

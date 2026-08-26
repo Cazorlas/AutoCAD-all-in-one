@@ -31,14 +31,19 @@ Choose the host year once and reference the matching wrapper line:
 ```xml
 <PropertyGroup>
   <AutoCadVersion>2024</AutoCadVersion>
+  <AutoCadApiPackageVersion>2024.0.2</AutoCadApiPackageVersion>
 </PropertyGroup>
 
 <ItemGroup>
   <PackageReference Include="AutoCAD-all-in-one"
-                    Version="$(AutoCadVersion).0.*"
+                    Version="$(AutoCadApiPackageVersion)"
                     PrivateAssets="all" />
 </ItemGroup>
 ```
+
+Pin the facade package exactly so restores remain reproducible. When a newer wrapper line is required,
+update `AutoCadApiPackageVersion` deliberately; for example, opt in to `2024.1.2` instead of allowing a
+floating version to select it automatically.
 
 The package imports build-transitive files that:
 

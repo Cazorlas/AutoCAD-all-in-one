@@ -15,7 +15,7 @@ This is an independent convenience package and is not endorsed by Autodesk.
 | 2021 | `2021.0.1` | `24.0.0` | .NET Framework 4.7 |
 | 2022 | `2022.0.1` | `24.1.51000` | .NET Framework 4.7 |
 | 2023 | `2023.0.1` | `24.2.0` | .NET Framework 4.7 |
-| 2024 | `2024.0.1` | `24.3.0` | .NET Framework 4.8 |
+| 2024 | `2024.0.2` | `24.3.0` | .NET Framework 4.8 |
 | 2025 | `2025.0.1` | `25.0.1` | .NET 8 for Windows |
 | 2026 | `2026.0.1` | `25.1.1` | .NET 10 for Windows |
 | 2027 | `2027.0.1` | `26.0.0` | .NET 10 for Windows |
@@ -101,8 +101,8 @@ For each release:
 4. Create and push the exact matching tag:
 
 ```powershell
-git tag v2024.0.1
-git push origin v2024.0.1
+git tag v2024.0.2
+git push origin v2024.0.2
 ```
 
 The tag workflow builds and tests exactly one package before requesting a short-lived NuGet credential. Duplicate versions fail visibly and are not skipped.

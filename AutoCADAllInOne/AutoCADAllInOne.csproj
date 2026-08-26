@@ -20,7 +20,7 @@
     <AutoCadSdkPackageVersion Condition="'$(AutoCadSdkPackageVersion)' == ''">$(_ExpectedAutoCadSdkPackageVersion)</AutoCadSdkPackageVersion>
 
     <PackageId>AutoCAD-all-in-one</PackageId>
-    <PackageVersion Condition="'$(PackageVersion)' == ''">2024.0.1</PackageVersion>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">2024.0.2</PackageVersion>
     <Title>AutoCAD all-in-one managed API facade</Title>
     <Description>A build-only facade that selects the official Autodesk AutoCAD.NET package for one AutoCAD host year.</Description>
     <Authors>Cazorlas</Authors>
@@ -31,6 +31,7 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <IsPackable>true</IsPackable>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <SuppressDependenciesWhenPacking>false</SuppressDependenciesWhenPacking>
@@ -54,6 +55,7 @@
     <None Include="..\build\AutoCAD-all-in-one.targets"
           Pack="true"
           PackagePath="buildTransitive\AutoCAD-all-in-one.targets" />
+    <None Include="..\assets\icon.png" Pack="true" PackagePath="\" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />

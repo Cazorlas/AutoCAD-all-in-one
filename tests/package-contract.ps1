@@ -34,7 +34,7 @@ function Get-ExpectedYearContracts {
         [pscustomobject]@{ Year = 2021; WrapperVersion = "2021.0.1"; AutodeskPackageVersion = "24.0.0"; TargetFramework = "net47"; LocalSdkStatus = "missing"; LocalSdkPath = "" }
         [pscustomobject]@{ Year = 2022; WrapperVersion = "2022.0.1"; AutodeskPackageVersion = "24.1.51000"; TargetFramework = "net47"; LocalSdkStatus = "missing"; LocalSdkPath = "" }
         [pscustomobject]@{ Year = 2023; WrapperVersion = "2023.0.1"; AutodeskPackageVersion = "24.2.0"; TargetFramework = "net47"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad23" }
-        [pscustomobject]@{ Year = 2024; WrapperVersion = "2024.0.1"; AutodeskPackageVersion = "24.3.0"; TargetFramework = "net48"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad24" }
+        [pscustomobject]@{ Year = 2024; WrapperVersion = "2024.0.2"; AutodeskPackageVersion = "24.3.0"; TargetFramework = "net48"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad24" }
         [pscustomobject]@{ Year = 2025; WrapperVersion = "2025.0.1"; AutodeskPackageVersion = "25.0.1"; TargetFramework = "net8.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad25" }
         [pscustomobject]@{ Year = 2026; WrapperVersion = "2026.0.1"; AutodeskPackageVersion = "25.1.1"; TargetFramework = "net10.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad26" }
         [pscustomobject]@{ Year = 2027; WrapperVersion = "2027.0.1"; AutodeskPackageVersion = "26.0.0"; TargetFramework = "net10.0-windows"; LocalSdkStatus = "present"; LocalSdkPath = "libs/ObjectARX_Cad27" }
@@ -120,6 +120,7 @@ function Test-StaticPackageContract {
     $requiredEntries = @(
         "buildTransitive/AutoCAD-all-in-one.props",
         "buildTransitive/AutoCAD-all-in-one.targets",
+        "icon.png",
         "README.md",
         "LICENSE",
         "THIRD-PARTY-NOTICES.md"
@@ -155,8 +156,10 @@ function Test-StaticPackageContract {
 
             $idNode = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='id']")
             $versionNode = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='version']")
+            $iconNode = $nuspec.SelectSingleNode("//*[local-name()='metadata']/*[local-name()='icon']")
             Assert-Contract ($null -ne $idNode -and $idNode.InnerText -eq "AutoCAD-all-in-one") "$($expected.Year) package ID mismatch"
             Assert-Contract ($null -ne $versionNode -and $versionNode.InnerText -eq $expected.WrapperVersion) "$($expected.Year) package version mismatch"
+            Assert-Contract ($null -ne $iconNode -and $iconNode.InnerText -eq "icon.png") "$($expected.Year) package icon metadata mismatch"
 
             $dependencyNodes = @($nuspec.SelectNodes("//*[local-name()='dependency'][@id='AutoCAD.NET']"))
             Assert-Contract ($dependencyNodes.Count -eq 1) "$($expected.Year) package must have exactly one AutoCAD.NET dependency"

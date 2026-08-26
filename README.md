@@ -95,17 +95,19 @@ One-time setup:
 
 For each release:
 
-1. Edit `AutoCadVersion` and `PackageVersion` in `AutoCADAllInOne/AutoCADAllInOne.csproj`.
-2. Build `Release` and run the focused package contract.
-3. Commit and push the release change, then wait for the main build workflow to pass.
-4. Create and push the exact matching tag:
+1. Confirm the selected year's `wrapperVersion` in `metadata/<year>.json`.
+2. Run `build/Pack.ps1 -Year <year>` and the focused package contract.
+3. Push any required source changes and wait for the main build workflow to pass.
+4. Create and push the exact matching `vYYYY.0.PATCH` tag:
 
 ```powershell
 git tag v2024.0.2
 git push origin v2024.0.2
 ```
 
-The tag workflow builds and tests exactly one package before requesting a short-lived NuGet credential. Duplicate versions fail visibly and are not skipped.
+The tag selects the package year and version. The workflow packs that year, requires the package
+produced from metadata to match the complete tag version, and tests exactly one package before
+requesting a short-lived NuGet credential. Duplicate versions fail visibly and are not skipped.
 
 ## Runtime responsibility
 

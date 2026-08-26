@@ -210,16 +210,18 @@ function Test-AutomationContract {
         "NuGet/login@v1",
         "NUGET_API_KEY",
         "dotnet nuget push",
-        "AutoCADAllInOne/AutoCADAllInOne.csproj",
-        "-getProperty:AutoCadVersion",
-        "-getProperty:PackageVersion",
-        "dotnet build",
+        "github.ref_name",
+        "tagYear",
+        "build/Pack.ps1",
+        "Pack.ps1 -Year",
         "ExpectedPackageVersion",
         "tests/package-contract.ps1"
     )) {
         Assert-Contract ($publishWorkflow.Contains($requiredText)) "publish workflow is missing: $requiredText"
     }
     Assert-Contract (-not $publishWorkflow.Contains("metadata/")) "publish workflow must not take the public release version from metadata"
+    Assert-Contract (-not $publishWorkflow.Contains("-getProperty:AutoCadVersion")) "publish workflow must select the AutoCAD year from the release tag"
+    Assert-Contract (-not $publishWorkflow.Contains("-getProperty:PackageVersion")) "publish workflow must select the package version from the release tag"
     Assert-Contract (-not $publishWorkflow.Contains("--skip-duplicate")) "publish workflow must surface duplicate package versions"
     Assert-Contract (-not $publishWorkflow.Contains("NUGET_API_KEY:")) "publish workflow must not declare a long-lived NUGET_API_KEY secret"
 

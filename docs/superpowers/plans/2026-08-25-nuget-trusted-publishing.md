@@ -4,6 +4,11 @@
 
 **Goal:** Publish exactly one `.csproj`-selected `AutoCAD-all-in-one` package from a matching Git tag through NuGet.org Trusted Publishing.
 
+> **2026-08-26 amendment:** The user approved publishing multiple existing year lines without
+> changing the project default for every tag. The tag now selects the year/version and
+> `build/Pack.ps1` resolves the matching metadata. Earlier steps that make `.csproj` the public
+> release selector are retained as implementation history but are superseded by this amendment.
+
 **Architecture:** `AutoCADAllInOne.csproj` supplies the public release year and version. The tag workflow evaluates those MSBuild properties, rejects mismatches, builds and validates the package, then exchanges GitHub OIDC for a short-lived NuGet credential immediately before the push. The existing metadata-driven 2019-2027 build matrix remains independent and unpublished.
 
 **Tech Stack:** SDK-style MSBuild, PowerShell 5.1/7, GitHub Actions, `NuGet/login@v1`, NuGet.org OIDC trusted publishing.
@@ -13,7 +18,7 @@
 - Local `Debug` and `Release` builds must never publish externally.
 - Pushes and pull requests must keep running the unpublished 2019-2027 matrix.
 - Only a tag matching `vYYYY.0.PATCH` may start public publishing.
-- `AutoCadVersion` and `PackageVersion` from `AutoCADAllInOne.csproj` are authoritative for a public release.
+- The `vYYYY.0.PATCH` tag is authoritative for the public year/version; the generated package must match it exactly.
 - The workflow must test before requesting a NuGet credential.
 - No long-lived NuGet API key may enter source, configuration, or logs.
 - Do not add `--skip-duplicate`; a duplicate version must fail visibly.

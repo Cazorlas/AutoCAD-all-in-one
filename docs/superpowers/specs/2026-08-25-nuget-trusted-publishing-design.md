@@ -26,15 +26,13 @@ Publishing on every push to `main` is rejected because an ordinary source change
 
 ## 3. Release Source of Truth
 
-`AutoCADAllInOne/AutoCADAllInOne.csproj` is the source of truth for the package selected for public release:
+The pushed `vYYYY.0.PATCH` tag selects the public release year and complete NuGet version. The
+matching `metadata/<year>.json` entry supplies the official `AutoCAD.NET` dependency, target
+framework, and wrapper version used by `build/Pack.ps1`. The package contract requires the generated
+wrapper version to equal the tag version before authentication or publication.
 
-- `AutoCadVersion` selects the AutoCAD host year.
-- `PackageVersion` is the complete NuGet version and must begin with the selected AutoCAD year.
-- The existing year mapping selects the target framework and official `AutoCAD.NET` dependency.
-
-The `metadata/<year>.json` files remain the compatibility and build-matrix inventory for all supported years. Their `wrapperVersion` values may be used for unpublished matrix artifacts, but they do not override the `.csproj` values during a public release.
-
-This separation allows one release to be edited like `Revit_packages_all_versions` without weakening the all-year compatibility checks.
+`AutoCADAllInOne/AutoCADAllInOne.csproj` keeps 2024 as the convenient local Visual Studio default,
+but public multi-year releases do not require commits that change that default back and forth.
 
 ## 4. Publish Workflow
 
@@ -44,13 +42,12 @@ The workflow performs these steps in order:
 
 1. Check out the tagged commit.
 2. Install the required .NET 8 and .NET 10 SDKs.
-3. Evaluate `AutoCadVersion` and `PackageVersion` from `AutoCADAllInOne.csproj` through MSBuild.
-4. Require the Git tag to equal `v$(PackageVersion)`.
-5. Require the tag year, `AutoCadVersion`, and package-version major number to match.
-6. Build the solution in `Release`, producing exactly one `.nupkg` under `artifacts/packages`.
-7. Run the selected-year static and consumer package contracts against that exact package version.
-8. Request a short-lived credential through `NuGet/login@v1`.
-9. Require exactly one `.nupkg`, then push it to NuGet.org.
+3. Parse the release year and complete version from the `vYYYY.0.PATCH` tag.
+4. Run `build/Pack.ps1 -Year <year>`, producing exactly one `.nupkg` under `artifacts/packages`.
+5. Require the metadata-driven package version and year identity to match the tag.
+6. Run the selected-year static and consumer package contracts against that exact package version.
+7. Request a short-lived credential through `NuGet/login@v1`.
+8. Require exactly one `.nupkg`, then push it to NuGet.org.
 
 The workflow does not use `--skip-duplicate`. A duplicate version is a release error and must remain visible rather than being silently accepted.
 
@@ -59,7 +56,7 @@ The workflow does not use `--skip-duplicate`. A duplicate version is a release e
 The package contract script will accept an optional expected package version for the public-release path.
 
 - Matrix validation continues using each year's metadata.
-- Publish validation supplies the `.csproj` package version explicitly.
+- Publish validation supplies the tag package version explicitly.
 - Consumer build verification continues checking the selected framework, dependency, constants, and copy-local exclusions.
 - Static automation tests verify the tag gate, OIDC permission, temporary-key login, contract test, and single-package push.
 
@@ -80,7 +77,7 @@ These account-level actions require the maintainer's authenticated NuGet.org and
 
 ## 7. Failure Behavior
 
-- Missing or mismatched tag, year, or package version: fail before packing.
+- Invalid tag syntax fails before packing; a metadata/tag version mismatch fails before authentication.
 - Restore, build, or contract failure: fail before requesting a NuGet credential.
 - Missing Trusted Publishing policy or incorrect `NUGET_USER`: fail during OIDC login without publishing.
 - Zero or multiple packages: fail before `dotnet nuget push`.
@@ -90,11 +87,9 @@ These account-level actions require the maintainer's authenticated NuGet.org and
 
 After the repository workflow and external policy are configured:
 
-1. Edit `AutoCadVersion` and `PackageVersion` in `AutoCADAllInOne.csproj`.
-2. Build `Release` and run the focused package contract locally.
-3. Commit and push the release change to `main`.
-4. Wait for the all-year build workflow to pass.
-5. Create and push a matching tag, for example `v2024.0.1`.
-6. Verify the publish workflow and the new package page on NuGet.org.
+1. Confirm the selected year's metadata and run its focused pack/consumer contract locally.
+2. Push any required source changes to `main` and wait for the all-year build workflow to pass.
+3. Create and push the matching tag, for example `v2024.0.2`.
+4. Verify the publish workflow and the new package page on NuGet.org.
 
 Tag creation and public publishing remain explicit external actions; implementation and verification do not create a tag or publish a package automatically.
